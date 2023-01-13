@@ -1,18 +1,15 @@
+import random
 from random import choices
-from itertools import combinations_with_replacement
+from itertools import combinations
 import matplotlib.pyplot as plt
 import copy
 
+
 items_id = [500, 501, 502, 503, 504, 505, 506,
             600, 601, 602, 603, 604, 605, 606,
-            700, 701, 702, 703, 704, 705, 706,
-            800, 801, 802, 803, 804, 805, 806,
-            900, 901, 902, 903, 904, 905, 906,
-            300, 301, 302, 303, 304, 305, 306,
-            400, 401, 402, 403, 404, 405, 406,
-            1000, 1001, 1002, 1003, 1004, 1005, 1006,
-            1100, 1101, 1102, 1103, 1104, 1105, 1106,
-            ]
+            1000, 1001, 1002, 1003, 1004, 1005, 1006]
+
+orders_items_id = [505, 506, 605, 606, 1005, 1006]
 
 
 def merges(field, tap, order):
@@ -51,7 +48,6 @@ def choose_generator(gens, order):
             if j // 100 == order // 100:
                 ans = values[v]
 
-    # print(list(generators.keys())[list(generators.values()).index(ans)])
     return ans
 
 
@@ -76,10 +72,6 @@ def checker(init_field, orders, generators, iterations):
         average_merge += cur_merges
         average_taps_gens += taps_gens
 
-    # print("Average merges amount", average_merge / iterations)
-    # print("Average generator taps amount", average_taps_gens / iterations)
-    # print("Average difficulty", (average_merge + average_taps_gens) / iterations)
-
     return (average_merge + average_taps_gens) / iterations
 
 
@@ -87,22 +79,57 @@ def sort_func(e):
     return e[1]
 
 
-iterations = 100
-main_field = []
-main_orders = [
-[503],
-[503, 504],
-[505],
-[504, 505],
-[506],
-]
-# generators properties
-main_generators = {1: {'items': [502], 'weights': [10]}, 2: {'items': [600], 'weights': [10]}, 3: {'items': [1000], 'weights': [10]}}
-s = 0
-for i in main_orders:
-    k = round(checker([], [i], main_generators, iterations))
-    # Order difficulty on the empty field
-    print(k)
-    s += k
-# Orders difficulty on the field
-print(checker(main_field, main_orders, main_generators, iterations))
+def r(e):
+    return e[0]
+
+
+def choice_order(prev_orders, possible_orders):
+    if len(prev_orders) == 0:
+        return random.choice(possible_orders)
+    else:
+        t = ()
+        for _ in range(len(possible_orders)):
+            # t = possible_orders[_]
+            t = random.choice(possible_orders)
+            if len(list(set(t) & set(prev_orders[-1]))) > 0 or (t == prev_orders[-1]):
+                continue
+            else:
+                break
+        return t
+
+
+temp = list(combinations(orders_items_id, 1))
+temp += list(combinations(orders_items_id, 2))
+temp += list(combinations(orders_items_id, 3))
+
+list_orders = []
+
+for i in range(len(temp)):
+    main_field = []
+    main_orders = [list(temp[i])]
+
+    main_generators = {1: {'items': [503], 'weights': [10]},2: {'items': [603], 'weights': [10]}, 3: {'items': [1002], 'weights': [10]} }
+
+    iterations = 1000
+
+    list_orders.append([temp[i], round(checker(main_field, main_orders, main_generators, iterations))])
+
+dict_orders = dict(list_orders)
+d = {}
+
+for k, v in dict_orders.items():
+    if v in d:
+        d[v].append(k)
+    else:
+        d[v] = [k]
+
+result = []
+
+print("All orders")
+for k, v in d.items():
+    result.append([k, v])
+
+result.sort(key=r)
+
+for i in range(len(result)):
+    print(result[i])
