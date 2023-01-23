@@ -12,7 +12,15 @@ items_id = [500, 501, 502, 503, 504, 505, 506,
             400, 401, 402, 403, 404, 405, 406,
             1000, 1001, 1002, 1003, 1004, 1005, 1006,
             1100, 1101, 1102, 1103, 1104, 1105, 1106,
+            1600, 1601, 1602, 1603
             ]
+
+coins = {
+    1600: 1,
+    1601: 2,
+    1602: 4,
+    1603: 8
+}
 
 
 def merges(field, tap, order):
@@ -58,9 +66,10 @@ def choose_generator(gens, order):
 def checker(init_field, orders, generators, iterations):
     average_merge = 0
     average_taps_gens = 0
+    average_coins = 0
 
     start_field, start_merges, start_orders = merges(init_field, 0, orders)
-
+    # start_field, start_merges, start_orders = init_field, 0, orders
     for i in range(iterations):
         cur_field = copy.deepcopy(start_field)
         cur_merges = start_merges
@@ -73,6 +82,10 @@ def checker(init_field, orders, generators, iterations):
             cur_field.append(new_item)
             cur_field, cur_merges, cur_orders = merges(cur_field, cur_merges, cur_orders)
 
+        for c in range(len(cur_field)):
+            if cur_field[c] in coins.keys():
+                average_coins += coins[cur_field[c]]
+
         average_merge += cur_merges
         average_taps_gens += taps_gens
 
@@ -80,7 +93,7 @@ def checker(init_field, orders, generators, iterations):
     # print("Average generator taps amount", average_taps_gens / iterations)
     # print("Average difficulty", (average_merge + average_taps_gens) / iterations)
 
-    return (average_merge + average_taps_gens) / iterations
+    return (average_merge + average_taps_gens) / iterations, average_coins/iterations
 
 
 def sort_func(e):
@@ -88,21 +101,23 @@ def sort_func(e):
 
 
 iterations = 100
-main_field = []
+main_field = [603, 603, 603, 603, 503, 503, 503, 503, 1003, 1003, 1003, 1003, 1003, 1003, 603, 603, 503, 503]
 main_orders = [
-[503],
-[503, 504],
-[505],
-[504, 505],
-[506],
+    [505, 606, 1005],
+    [505, 605, 1005],
+    [605, 606, 1005],
+    [1005, 1006],
+    [506, 606, 1006],
 ]
 # generators properties
-main_generators = {1: {'items': [502], 'weights': [10]}, 2: {'items': [600], 'weights': [10]}, 3: {'items': [1000], 'weights': [10]}}
-s = 0
+main_generators = {1: {'items': [503,  1600], 'weights': [10, 1]},2: {'items': [603,  1600], 'weights': [10, 1]}, 3: {'items': [1003,  1600], 'weights': [10, 1]} }
+
 for i in main_orders:
-    k = round(checker([], [i], main_generators, iterations))
+    k, collected_coins = checker([], [i], main_generators, iterations)
     # Order difficulty on the empty field
-    print(k)
-    s += k
-# Orders difficulty on the field
-print(checker(main_field, main_orders, main_generators, iterations))
+    print(round(k))
+
+# Orders difficulty with init field, collected coins
+total_diff, avr_coins =  checker(main_field, main_orders, main_generators, iterations)
+print("Average total difficulty with init field", total_diff)
+print("Average collected coins", avr_coins)
